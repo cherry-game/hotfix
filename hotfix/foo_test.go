@@ -66,11 +66,10 @@ package patch
 
 import "github.com/cherry-game/cherry-hotfix/model"
 
-func FixFooHello() func(foo *model.Foo) string {
-	return func(foo *model.Foo) string {
-		return "func is fixed"
-	}
+func FixFooHello(foo *model.Foo) string {
+	return "func is fixed"
 }
+
 `
 	interpreter := interp.New(interp.Options{})
 	interpreter.Use(stdlib.Symbols)
@@ -92,8 +91,7 @@ func FixFooHello() func(foo *model.Foo) string {
 		panic(err)
 	}
 
-	values := val.Call(nil)
-	//fmt.Println("patch func reflect type ->", values[0].Type())
+	fmt.Println("patch func reflect type ->", val.Type())
 
-	return values[0]
+	return val
 }
