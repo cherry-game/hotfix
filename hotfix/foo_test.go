@@ -2,45 +2,60 @@ package hotfix
 
 import (
 	"fmt"
+	"reflect"
+	"testing"
+	"time"
+
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/cherry-game/cherry-hotfix/model"
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
-	"reflect"
-	"testing"
 )
 
 func TestFixFooHelloFunc(t *testing.T) {
 	// 构建foo1
-	foo1 := model.Foo{
+	foo1 := &model.Foo{
 		String: "foo1",
 	}
 
 	// 打印foo1的信息
-	t.Logf("替换前: foo1 -> %+v, Helo() -> %s", &foo1, foo1.Hello())
+	fmt.Println("替换前: ", foo1, "-> Hello() ->", foo1.Hello())
+
+	// 模拟Hello()被调用
+	for i := 0; i < 1000; i++ {
+		go func(foo *model.Foo) {
+			for {
+				foo.Hello()
+				time.Sleep(1 * time.Millisecond)
+			}
+		}(foo1)
+	}
 
 	// 获取Hello()的替换函数
-	replaceFuncValueOf := GetReplaceFunc()
+	var (
+		replaceFuncValue = GetReplaceFunc()
+		replaceFuncName  = "Hello"
+	)
 
-	// 打桩替换
-	patches := monkeyApplyMethod(reflect.TypeOf(&model.Foo{}), "Hello", replaceFuncValueOf)
+	// 针对model.Foo的Hello()函数进行打桩替换
+	patches := monkeyApplyMethod(reflect.TypeOf(&model.Foo{}), replaceFuncName, replaceFuncValue)
 
-	// 打印foo1的信息，Hello()函数已被替换
-	t.Logf("替换后: foo1 -> %+v, Helo() -> %s", &foo1, foo1.Hello())
+	// 打印foo1的信息，Hello()函数已被替换!
+	fmt.Println("替换后: ", foo1, "-> Hello() ->", foo1.Hello())
 
-	// 重置还原Hello()
+	// 重置Hello()函数
 	patches.Reset()
 
 	// 打印foo1的信息，已还原
-	t.Logf("还原后: foo1 -> %+v, Helo() -> %s", &foo1, foo1.Hello())
+	fmt.Println("还原后: ", foo1, "-> Hello() ->", foo1.Hello())
 }
 
 func monkeyApplyMethod(target reflect.Type, methodName string, dest reflect.Value) *gomonkey.Patches {
-	patches := gomonkey.NewPatches()
 	m, ok := target.MethodByName(methodName)
 	if !ok {
 		panic("retrieve method by name failed")
 	}
+	patches := gomonkey.NewPatches()
 	return patches.ApplyCore(m.Func, dest)
 }
 
@@ -53,28 +68,28 @@ import "github.com/cherry-game/cherry-hotfix/model"
 
 func FixFooHello() func(foo *model.Foo) string {
 	return func(foo *model.Foo) string {
-		return "foo.Hello() is fixed"
+		return "func is fixed"
 	}
 }
 `
-	i := interp.New(interp.Options{})
-	i.Use(stdlib.Symbols)
+	interpreter := interp.New(interp.Options{})
+	interpreter.Use(stdlib.Symbols)
 
 	// 演示用，先写死,可以通过yaegi生成
-	i.Use(map[string]map[string]reflect.Value{
+	interpreter.Use(map[string]map[string]reflect.Value{
 		"github.com/cherry-game/cherry-hotfix/model/model": {
 			"Foo": reflect.ValueOf((*model.Foo)(nil)),
 		},
 	})
 
-	if _, err := i.Eval(patchScript); err != nil {
-		fmt.Println(err)
+	if _, err := interpreter.Eval(patchScript); err != nil {
+		panic(err)
 	}
 
 	// 获取函数对象
-	val, err := i.Eval(`patch.FixFooHello`)
+	val, err := interpreter.Eval(`patch.FixFooHello`)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 
 	values := val.Call(nil)
