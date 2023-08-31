@@ -8,8 +8,8 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/cherry-game/cherry-hotfix/model"
+	"github.com/cherry-game/cherry-hotfix/symbols"
 	"github.com/traefik/yaegi/interp"
-	"github.com/traefik/yaegi/stdlib"
 )
 
 func TestFixFooHelloFunc(t *testing.T) {
@@ -31,13 +31,12 @@ func TestFixFooHelloFunc(t *testing.T) {
 		}(foo1)
 	}
 
-	// 获取Hello()的替换函数
 	var (
-		replaceFuncValue = GetReplaceFunc()
-		replaceFuncName  = "Hello"
+		replaceFuncName  = "Hello"          // 替换的函数名
+		replaceFuncValue = GetReplaceFunc() // 获取Hello()的替换函数
 	)
 
-	// 针对model.Foo的Hello()函数进行打桩替换
+	// 针对model.Foo结构的 Hello()函数进行打桩替换
 	patches := monkeyApplyMethod(reflect.TypeOf(&model.Foo{}), replaceFuncName, replaceFuncValue)
 
 	// 打印foo1的信息，Hello()函数已被替换!
@@ -60,33 +59,20 @@ func monkeyApplyMethod(target reflect.Type, methodName string, dest reflect.Valu
 }
 
 func GetReplaceFunc() reflect.Value {
-	// 演示用，先写死
-	patchScript := `
-package patch
-
-import "github.com/cherry-game/cherry-hotfix/model"
-
-func FixFooHello(foo *model.Foo) string {
-	return "func is fixed"
-}
-
-`
+	// 构建解析器
 	interpreter := interp.New(interp.Options{})
-	interpreter.Use(stdlib.Symbols)
 
-	// 演示用，先写死,可以通过yaegi生成
-	interpreter.Use(map[string]map[string]reflect.Value{
-		"github.com/cherry-game/cherry-hotfix/model/model": {
-			"Foo": reflect.ValueOf((*model.Foo)(nil)),
-		},
-	})
+	// 导入符号表
+	interpreter.Use(symbols.Symbols)
 
-	if _, err := interpreter.Eval(patchScript); err != nil {
+	// 读取补丁脚本
+	_, err := interpreter.EvalPath("./../_patch/foo/foo.go")
+	if err != nil {
 		panic(err)
 	}
 
-	// 获取函数对象
-	val, err := interpreter.Eval(`patch.FixFooHello`)
+	// 获取替换函数
+	val, err := interpreter.Eval(`foo.FixHello`)
 	if err != nil {
 		panic(err)
 	}
