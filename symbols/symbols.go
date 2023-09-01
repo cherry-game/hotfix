@@ -15,4 +15,5 @@ func init() {
 }
 
 // 点击生成符号表
-//go:generate yaegi extract github.com/cherry-game/cherry-hotfix/model model
+//go:generate yaegi extract github.com/cherry-game/cherry-hotfix/hotfix hotfix
+//go:generate yaegi extract github.com/cherry-game/cherry-hotfix/test/model model

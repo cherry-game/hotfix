@@ -1,6 +1,8 @@
 package model
 
-import "github.com/cherry-game/cherry-hotfix/model/m1"
+import (
+	"github.com/cherry-game/cherry-hotfix/test/model/m1"
+)
 
 type Foo struct {
 	String string
