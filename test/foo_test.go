@@ -17,7 +17,7 @@ func TestFixFooHelloFunc(t *testing.T) {
 	}
 
 	// 打印foo1的信息
-	fmt.Println("替换前: ", foo1, "-> Hello() ->", foo1.Hello())
+	fmt.Println("初始: ", foo1, "-> Hello() ->", foo1.Hello())
 
 	// 模拟Hello()被调用
 	for i := 0; i < 1000; i++ {
@@ -42,11 +42,11 @@ func TestFixFooHelloFunc(t *testing.T) {
 	}
 
 	// 打印foo1的信息，Hello()函数已被替换!
-	fmt.Println("替换后: ", foo1, "-> Hello() ->", foo1.Hello())
+	fmt.Println("替换: ", foo1, "-> Hello() ->", foo1.Hello())
 
 	// 重置Hello()函数
 	patches.Reset()
 
 	// 打印foo1的信息，已还原
-	fmt.Println("还原后: ", foo1, "-> Hello() ->", foo1.Hello())
+	fmt.Println("还原: ", foo1, "-> Hello() ->", foo1.Hello())
 }

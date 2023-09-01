@@ -8,7 +8,7 @@ import (
 )
 
 func GetPatch() *hotfix.FuncPatch {
-	fmt.Println("ssxxx")
+	fmt.Println("invoke GetPatch()")
 
 	fn := func(foo *model.Foo) string {
 		foo.M1Int.Int = 1
