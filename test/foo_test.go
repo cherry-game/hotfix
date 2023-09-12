@@ -2,16 +2,16 @@ package hotfix_test
 
 import (
 	"fmt"
-	"github.com/cherry-game/cherry-hotfix/hotfix"
-	"github.com/cherry-game/cherry-hotfix/test/model"
 	"testing"
 	"time"
+
+	"github.com/cherry-game/cherry-hotfix/hotfix"
+	"github.com/cherry-game/cherry-hotfix/test/model"
 
 	"github.com/cherry-game/cherry-hotfix/symbols"
 )
 
 func TestFixFooHelloFunc(t *testing.T) {
-	// 构建foo1
 	foo1 := &model.Foo{
 		String: "foo1",
 	}
